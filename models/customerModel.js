@@ -1,20 +1,29 @@
-const mongoose=require('mongoose');
-const bcrypt=require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
+const customerSchema = new mongoose.Schema({
+  fname: { type: String, required: true, trim: true },
+  lname: { type: String, required: true, trim: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  password: { type: String, required: true },
+  mobile: {
+    type: String,
+    required: true,
+    match: [/^\d{10}$/, "Invalid mobile number"]
+  },
+  role: {
+    type: String,
+    enum: ["customer", "admin"],
+    default: "customer"
+  }
+}, { timestamps: true });
 
-const customerSchema=new mongoose.Schema({
-    fname:{type:String},
-    lname:{type:String},
-    email:{type:String},
-    password:{type:String},
-    mobile:{type:Number},
-    role:{
-        type:String,
-        enum:['customer','admin'],default:'customer'
-    },
-   
-    
-});
 
 
 customerSchema.methods.comparePassword=async function(plainPassword){
@@ -22,11 +31,10 @@ customerSchema.methods.comparePassword=async function(plainPassword){
 };
 
 
-customerSchema.pre('save',async function(next){
-    if(this.isModified('password')){
-        this.password=await bcrypt.hash(this.password,10)
-    }
-    next();
+customerSchema.pre("save", async function(next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
 
