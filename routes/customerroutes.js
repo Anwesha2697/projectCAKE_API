@@ -36,29 +36,29 @@ router.post("/", async (req, res) => {
     // Check existing customer
     const existcust = await customer.findOne({ email });
     if (existcust) {
-      return res.status(400).json({ message: "Customer already exists" });
+      res.status(400).json({ message: "Customer already exists" });
+    }else{
+      // Save customer
+      const newcust = new customer(req.body);
+      const savedCustomer = await newcust.save();
+
+      // RESPOND IMMEDIATELY (prevents timeout)
+      res.status(201).json({
+        message: "Registration successful",
+        customerId: savedCustomer._id
+      });
     }
 
-    // Save customer
-    const newcust = new customer(req.body);
-    const savedCustomer = await newcust.save();
-
-    // RESPOND IMMEDIATELY (prevents timeout)
-    res.status(201).json({
-      message: "Registration successful",
-      customerId: savedCustomer._id
-    });
-
     // SEND EMAIL ASYNC (non-blocking)
-    transporter.sendMail({
-      from: '"Cake Shop" <' + process.env.EMAIL_USER + '>',
-      to: email,
-      subject: "Registration Confirmation",
-      text:
-        "Thank you for joining Cake Shop!\n\n" +
-        "We're excited to have you on board.\n\n" +
-        "Best regards,\nThe Cake Shop Team"
-    }).catch(err => console.error("Email error:", err));
+    // transporter.sendMail({
+    //   from: '"Cake Shop" <' + process.env.EMAIL_USER + '>',
+    //   to: email,
+    //   subject: "Registration Confirmation",
+    //   text:
+    //     "Thank you for joining Cake Shop!\n\n" +
+    //     "We're excited to have you on board.\n\n" +
+    //     "Best regards,\nThe Cake Shop Team"
+    // }).catch(err => console.error("Email error:", err));
 
   } catch (err) {
     res.status(400).json({ message: err.message });
